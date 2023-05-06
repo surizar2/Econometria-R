@@ -1,0 +1,207 @@
+---
+title: "Laboratorio 1"
+output: html_notebook
+---
+# Parte 1
+
+1. ¿Cómo generaría un arreglo aleatorio de 250 elementos con los 
+colores primarios?
+```{r}
+colores <- c('rojo','amarillo','azul')
+ArregloRandom <- sample(colores,250,replace = T)
+print(ArregloRandom)
+```
+
+2. Dado un arreglo de 120000 elementos de números enteros entre 
+40 y 70, ¿Cómo haría para obtener la desviación estándar de 
+aquellos números que son mayores a 55 y menores a 64
+```{r}
+randVec <- as.integer(runif(120000,min = 40, max = 70))
+mediaDeseada <- mean(randVec[(randVec > 55) & (randVec < 64)])
+desviDeseada <- sd(randVec[(randVec > 55) & (randVec < 64)])
+print(paste('La media del set seleccionado es:',mediaDeseada))
+print(paste('La desviación del set seleccionado es:',desviDeseada))
+
+```
+3. Suponga que se almacena en una variable un arreglo con todos 
+los números de carnet de los estudiantes del Instituto de 
+Investigación de Operaciones de la universidad en forma de 
+string, los carnets tiene al inicio dos caracteres que 
+identifican el año en el que la persona entró a la universidad 
+por ejemplo: 19004528 hacer referencia a una persona que 
+ingreso en el año 2019, 06009878 hace referencia a una persona 
+que ingreso que el año 2006, ¿Cómo haría para contar la cantidad 
+de alumnos por año? 
+```{r}
+## función que genera los carnets
+carnets <- function(z){
+  stringAnios <- c()
+  carnetFinal <-c()
+  CantidadPorAnio <- list()
+  for (r in 1:length(z)){
+    if (z[r] <10){
+      stringAnios <- append(stringAnios,paste('0',z[r],sep = ''))
+      
+    }
+    else{
+      stringAnios <- append(stringAnios,z[r])
+    }
+  }
+  
+  for(r in 1:length(z)){
+    digitos <- as.integer(runif(as.integer(runif(1,1,1000)),1000,9999))
+    #digitos <- as.integer(runif(as.integer(runif(1,1,4)),1000,9999))
+    carnetFinal <- append(carnetFinal,paste(stringAnios[r],'00',digitos, sep =''))
+    
+  }
+#calculando los carnetes por anio
+  for(r in 1:length(z)){
+    CantidadPorAnio <- append(CantidadPorAnio,sum(substr(carnetFinal,1,2) == stringAnios[r]))
+  }
+  names(CantidadPorAnio) <- stringAnios
+  return(CantidadPorAnio)
+}
+```
+```{r}
+anios <- c(6:23)
+
+test <- carnets(anios)
+test
+```
+
+4. Define el vector y = (1, 3, 5, 7) utilizando la función c(). 
+¿Cómo lo harías con la función seq()? 
+```{r}
+y <- c(1,3,5,7)
+ySeq <- seq(from = 1, to = 7, by = 2)
+ySeq
+```
+5. Si b <- list(a=1:10, c="Hola", d="XX"), escriba una expresión 
+en R que devuelva todos los elementos de la lista excepto los 
+elementos 4,6,7,8 del vector a.
+
+```{r warning=FALSE}
+b <- list(a=1:10,c="Hola", d = "XX")
+c <- list(b$a[b$a != c(4,6,7,8)],b$c,b$d)
+print(c)
+
+```
+
+
+6. Dado los siguientes vectores, muestre el código en R necesario 
+para declarar y calcular el promedio, deviación estándar, 
+mediana, moda y sumatoria total para los siguientes vectores: \
+a. x=(8,7,6,5)
+b. y = (3,3, 3, 3, 3, 3, 3, 3, 2, 2) 
+c. z = (1, 1.75, 2.5, 3.25, 4)
+```{r}
+datos <- function(a){
+  media <- mean(a)
+  desviacion <- sd(a)
+  mediana <- median(a)
+  valsModa <- unique(a)
+  b <- table(a)
+  moda <- as.numeric(names(b)[b == max(b)])
+  sumaTotal <- sum(a)
+  output<- list(media,desviacion,mediana,moda,sumaTotal)
+  names(output) <- list('media', 'desviacion', 'mediana', 'moda', 'suma total')
+  return(output)
+  
+}
+```
+
+```{r}
+x <- c(8,7,6,5)
+y <- c(3,3,3,3,3,3,3,3,2,2)
+z <- c(1,1.75,2.5,3.25,4)
+datosListax <- datos(x)
+datosListax
+datosListay <- datos(y)
+datosListay
+datosListaz <- datos(z)
+datosListaz
+
+```
+
+7. Sabemos que para sumar vectores estos deben tener la misma 
+longitud. Sin embargo R trabaja de manera distinta. Defina los 
+vectores x = (1, 2, 3, 4, 5, 6), y = (7, 8), z = (9, 10, 11, 
+12). Calcula: 
+a. x + x
+b. x + y. 
+c. Responda ¿Qué ha hecho R?
+```{r}
+x <- c(1:6)
+y <- c(7,8)
+z <- c(9:12)
+x2 = x + x
+x3 = x + y
+cat('x + x =',x2)
+print('En este caso, el i-ésimo elemento de x se suma con el i-ésimo elemento de x')
+cat('x + y =',x3)
+print('En este caso, ya que y es de longitud 2 y x es de longitud 6, R repite de manera cíclica la lista y. Genera una lista de longitud 6 de los elementos de y repitiéndolos, y luego realiza la suma')
+```
+8. Dada la variable string <- "Hola Mundo", escriba una instrucción 
+en R que devuelva la siguiente salida: 
+ [[1]]
+ [1] "Hola"
+[[2]]
+[1] "Mundo
+```{r}
+string8 <- 'Hola Mundo'
+stringSeparada <- list(strsplit(string8, split = ' ')[[1]][1],strsplit(string8, split = ' ')[[1]][2])
+stringSeparada
+```
+
+# Problema 2.
+Es necesario cargar el archivo para esta parte:
+```{r}
+load('data.Rdata')
+```
+1.  ¿Qué tipo de dato es info_estudiantes?
+```{r}
+class(info_estudiantes)
+```
+
+2.  ¿Cuantos elementos tiene info_estudiantes? 
+```{r}
+cat('La variable info_estudiantes está conformada por ',length(info_estudiantes), 'elementos, llamados: ', names(info_estudiantes), '. Cada uno de estos tiene ', length(info_estudiantes[[1]]),' sub-elementos')
+  
+```
+3.  ¿Qué representa cada uno de los elementos de info_estudiantes?
+
+  Por lo que puede verse en el inciso anterior, cada elemento representa el carné de un estudiante, su promedio y el tipo de estudiante que es.
+
+4. ¿Cuál es la media de los estudiantes ingresados en el año 2019?
+```{r}
+mean(info_estudiantes$promedio[substr(info_estudiantes$carnet,1,2) == '19'])
+
+```
+5.  ¿Cuál es la suma de desviación estándar de los estudiantes que 
+ingresaron en el año 2016 y 2018?
+```{r}
+
+sd(info_estudiantes$promedio[(substr(info_estudiantes$carnet,1,2) == '18')]) + sd(info_estudiantes$promedio[substr(info_estudiantes$carnet,1,2) == '16'])
+```
+
+6.  ¿Cuál es el mínimo de notas de aquellos estudiantes donde su 
+carnet termina con los números 45 a 48?
+```{r}
+min(info_estudiantes$promedio[(as.integer(substr(info_estudiantes$carnet,7,8)) >= 45) &  (as.integer(substr(info_estudiantes$carnet,7,8)) <= 48) ])
+```
+
+
+7.  ¿Cuál es la probabilidad de que un estudiante tipo A tenga una 
+nota mayor a 85?
+```{r}
+sum(info_estudiantes$promedio[info_estudiantes$tipo == 'A'] > 85)/sum(info_estudiantes$tipo == 'A')
+```
+
+
+8.  ¿Cuál es la probabilidad de que un estudiante tipo C haya 
+ingresado en el año 2017 o 2019?
+```{r}
+sum(info_estudiantes$tipo[(substr(info_estudiantes$carnet,1,2) == '19') | (substr(info_estudiantes$carnet,1,2) == '17')] == 'C')/sum(info_estudiantes$tipo == 'C')
+
+```
+
