@@ -1,0 +1,249 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+# Laboratorio 2, ggplot y dplyr
+## Carga librerías
+```{r}
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+```
+
+## Carga de archivos
+```{r}
+DataBicis <- read.csv('dataset.csv')
+DataBicis
+```
+
+## Preguntas
+
+### 1. Cree un conjunto de columnas nuevas: día, mes, año, hora y minutos  a partir de la comlumna datetime, para esto investigue como puede  “desarmar” la variable datetime utilizando lubridate y mutate.
+
+```{r}
+fechas <- DataBicis %>%
+  mutate(
+    minutos = hr*60,
+    dia = day(dteday),
+    mes = month(dteday),
+    anio = year(dteday)
+  )
+fechas
+```
+
+
+### 2. ¿Qué mes es el que tiene la mayor demanda? Muestre una tabla y una gráfica
+```{r}
+MaxMes <- DataBicis %>%
+  group_by(mnth) %>%
+  summarise(totalesmes = sum(cnt))
+MaxMes
+```
+```{r}
+ggplot(MaxMes, aes(x = mnth, y = totalesmes, fill = totalesmes)) +
+  geom_bar(stat = 'identity', col = 'black', lwd = 1)
+```
+Tanto en la tabla como en la gráfica, se puede ver que el mes que más rentas tiene es julio.
+
+### 3. ¿Qué rango de hora es la de mayor demanda? Muestre una tabla y una gráfica
+```{r}
+MaxHora <- DataBicis %>%
+  group_by(hr) %>%
+  summarise(totaleshr = sum(cnt))
+MaxHora
+```
+```{r}
+ggplot(MaxHora, aes(x = hr, y = totaleshr)) +
+  geom_bar(stat = 'identity', col = 'black', lwd = 1, fill = 'blue')
+```
+Tanto en la tabla como en la gráfica se observa que entre las 17 y 18 horas está el máximo de rentas.
+
+### 4. ¿Qué temporada es la mas alta? Muestre una tabla
+```{r}
+MaxSsn <- DataBicis %>%
+  group_by(season) %>%
+  summarise(totalesssn = sum(cnt))
+MaxSsn
+```
+
+```{r}
+ggplot(MaxSsn, aes(x = season, y = totalesssn)) +
+  geom_bar(stat = 'identity', col = 'black', lwd = 1, fill = 'cyan')
+```
+Tanto en la gráfica como en la tabla se puede ver que el máximo de rentas está en la estación 3
+
+### 5. ¿A que temperatura disminuye la demanda? Muestre una gráfica para  analizar y dar su respuesta
+
+```{r}
+DatosTemp <- DataBicis %>%
+  group_by(temp)%>%
+  summarise(RentaTotalT = sum(cnt), AvgRenta = mean(cnt))
+DatosTemp
+```
+```{r}
+ggplot(data = DatosTemp, aes(x = temp, y = RentaTotalT))+
+  geom_bar(stat = 'identity', col = 'black', lwd = 0.4, fill = 'violet')
+```
+```{r}
+ggplot(data = DatosTemp, aes(x = temp, y = AvgRenta))+
+  geom_line(stat = 'identity', col = 'purple', lwd = 1)
+```
+
+A través de las gráficas presentadas, se puede observar que las rentas disminuyen a menor temperatura.
+
+
+### 6. ¿A que humedad disminuye la demanda? Muestre una gráfica para  analizar y dar su respuesta.
+
+```{r}
+DatosHum <- DataBicis %>%
+  group_by(hum)%>%
+  summarise(RentaTotalH = sum(cnt), AvgRentaH = mean(cnt))
+DatosHum
+```
+```{r}
+ggplot(data = DatosHum, aes(x = hum, y = RentaTotalH))+
+  geom_bar(stat = 'identity', col = 'black', lwd = 0.5, fill = 'darkblue')
+```
+```{r}
+ggplot(data = DatosHum, aes(x = hum, y = AvgRentaH))+
+  geom_line(stat = 'identity', col = 'cyan', lwd = 1)
+```
+
+a través de las gráficas presentadas, es notorio que las rentas disminuyen a medida que aumenta la humedad. El máximo de rentas promedio está cuando la humedad es alrededor de 0.25
+
+### 7. ¿Que condiciones climáticas serian ideales para nuestra demanda? (considere una función de densidad bivariable para la temperatura y la humedad)
+
+### 8. Mueste una gráfica de la densidad de rentas.
+
+```{r}
+ggplot(data = DataBicis, aes(x = cnt))+
+  geom_density(stat = 'density', lwd = 1, col = 'orange', fill = 'lightblue', linetype = 'dashed')+
+  geom_vline(aes(xintercept = mean(cnt)), col = 'darkblue', lwd = 1, linetype = 'dashed')
+```
+
+
+### 9. ¿En promedio de personas que rentan bicicletas y están registradas?
+
+Para este análsis, se sacará el promedio del dataset completo, luego se sacará por temporada, por mes y por hora para tener un mejor panorama
+
+```{r}
+PromedioNeto <- as.integer(mean(DataBicis$registered))
+PromedioNeto
+
+```
+```{r}
+PromedioMes <- DataBicis %>%
+  group_by(mnth)%>%
+  summarise(prommes = as.integer(mean(registered)))
+PromedioMes
+```
+```{r}
+PromedioSsn <- DataBicis %>%
+  group_by(season)%>%
+  summarise(promssn = as.integer(mean(registered)))
+PromedioSsn
+```
+
+
+
+### 10. Determine la mediana de personas que rentan bicicletas y no están registradas. 
+
+Al igual que en el caso de bicicletas registradas, se sacará el promedio en bruto, por mes y por estación
+
+```{r}
+PromedioNetoU <- as.integer(median(DataBicis$casual))
+PromedioNetoU
+
+```
+```{r}
+PromedioMesU <- DataBicis %>%
+  group_by(mnth)%>%
+  summarise(prommesU = as.integer(median(casual)))
+PromedioMesU
+```
+
+```{r}
+PromedioSsnU <- DataBicis %>%
+  group_by(season)%>%
+  summarise(promssnu = as.integer(median(casual)))
+PromedioSsnU
+```
+
+### 11. Deterimne la renta total, renta promedio por cada tipo de  estación.
+
+```{r}
+DatosSsn <- DataBicis %>%
+  group_by(season) %>%
+  summarise(totales = sum(cnt), promedios = as.integer(mean(cnt)))
+DatosSsn
+```
+
+
+### 12. Determine y muestre una gráfica de barras la cantidad de rentas por tipo de temporada.
+
+```{r}
+ggplot(MaxSsn, aes(x = season, y = totalesssn, fill = totalesssn)) +
+  geom_bar(stat = 'identity', col = 'black', lwd = 1)
+```
+
+
+### 13. Muestre una gráfica de la densidad por hora.
+```{r}
+DensHora <- DataBicis %>%
+  group_by(hr) %>%
+  summarise(rentashoras = sum(cnt), mediarentas = mean(cnt))
+```
+
+```{r}
+ggplot(data = DensHora, aes(x = rentashoras)) +
+  geom_density()
+```
+```{r}
+DataBiciss <- DataBicis
+DataBiciss$hr <- as.character(DataBiciss$hr)
+```
+
+```{r}
+ggplot(data = DataBiciss, aes(x = cnt, col = hr))+
+  geom_density(stat = 'density') +
+  theme_minimal()
+
+```
+
+
+
+### 14. Muestre una gráfica de barras por día del mes como eje x y la cantidad total de alquileres como el eje Y.
+
+```{r}
+DatosDay <- DataBicis %>%
+  group_by(weekday) %>%
+  summarise(totalwk = sum(cnt))
+
+ggplot(DatosDay, aes(x = weekday, y = totalwk, fill = totalwk))+
+geom_bar(stat = 'identity', col = 'black', lwd = 1)
+```
+
+
+### 15. Muestre una serie temporal (gráfica) con el tiempo (mes-dia-año) como eje de tiempo y la cantidad de alquieleres como eje Y.
+
+```{r}
+BicisDate <- DataBicis %>%
+  group_by(dteday) %>%
+  summarise(ventadiaria = sum(cnt))
+BicisDate$dteday = format(as.Date(BicisDate$dteday), '%m-%d-%Y')
+BicisDate$dteday = as.Date(BicisDate$dteday, '%m-%d-%Y')
+BicisDate
+```
+```{r}
+ggplot(data = BicisDate, aes(x = dteday, y = ventadiaria)) +
+  geom_line() +
+  xlab('')
+```
+
+
+### 16. Muestre una gráfica de puntos que relaciones la temperatura como ejer X y la humedad como eje Y.
+```{r}
+ggplot(data = DataBicis, aes(x = temp, y = hum)) +
+  geom_point(col = 'darkblue')
+```
+
