@@ -113,6 +113,12 @@ a través de las gráficas presentadas, es notorio que las rentas disminuyen a m
 
 ### 7. ¿Que condiciones climáticas serian ideales para nuestra demanda? (considere una función de densidad bivariable para la temperatura y la humedad)
 
+```{r}
+ggplot(data = DataBicis, aes(x = hum, y = temp, fill = cnt))+
+  geom_tile(width = 0.2, height = 0.04, alpha = 1, col = 'red')
+```
+En la gráfica, puede observarse que las mayores rentas están en temperaturas altas (alrededor de 0.75), y humedades bajas (alrededor de 0.3) 
+
 ### 8. Mueste una gráfica de la densidad de rentas.
 
 ```{r}
@@ -230,12 +236,13 @@ geom_bar(stat = 'identity', col = 'black', lwd = 1)
 BicisDate <- DataBicis %>%
   group_by(dteday) %>%
   summarise(ventadiaria = sum(cnt))
-BicisDate$dteday = format(as.Date(BicisDate$dteday), '%m-%d-%Y')
-BicisDate$dteday = as.Date(BicisDate$dteday, '%m-%d-%Y')
+BicisDate$dteday = format(as.Date(BicisDate$dteday), '%Y-%m-%d')
+fechas <- strptime(as.character(BicisDate$dteday), "%Y-%m-%d")
+BicisDate$dteday <- format(fechas, '%m-%d-%Y')
 BicisDate
 ```
 ```{r}
-ggplot(data = BicisDate, aes(x = dteday, y = ventadiaria)) +
+ggplot(data = BicisDate, aes(x = as.Date(dteday,'%m-%d-%Y'), y = ventadiaria)) +
   geom_line() +
   xlab('')
 ```
