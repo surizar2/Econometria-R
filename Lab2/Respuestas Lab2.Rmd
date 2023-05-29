@@ -43,7 +43,7 @@ MaxMes
 ggplot(MaxMes, aes(x = mnth, y = totalesmes, fill = totalesmes)) +
   geom_bar(stat = 'identity', col = 'black', lwd = 1)
 ```
-Tanto en la tabla como en la gráfica, se puede ver que el mes que más rentas tiene es julio.
+Tanto en la tabla como en la gráfica, se puede ver que el mes que más rentas tiene es agosto. Se puede ver también que junio, julio y septiembre también tienen ventas similares
 
 ### 3. ¿Qué rango de hora es la de mayor demanda? Muestre una tabla y una gráfica
 ```{r}
