@@ -1,0 +1,318 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+# Laboratorio 3
+```{r}
+library(dplyr)
+library(ggplot2)
+library(corrplot)
+library(PerformanceAnalytics)
+```
+
+# Problema 1
+
+Utilizando R realice una función que dado un dataframe cualquiera de dos columnas, donde la primera (índice 1) sea el valor de la variable independiente (X) y la segunda sea el valor de una variable dependiente (Y), devuelva una lista con los siguientes elementos:
+
+1) Un arreglo con los valores de los estimadores para coeficiente e intercepto
+2) El valor del coeficiente de determinación del modelo.
+3) El coeficiente de correlación r (raíz cuadrada del inciso anterior). 
+4) Un arreglo con los valores de los residuos.
+5) Una gráfica con la nube de puntos y la recta de regresión del 
+modelo.
+
+```{r}
+### Generando dataset
+
+set.seed(70)
+
+
+Xinventada <- rnorm(300,30,1000)
+error <- rnorm(300, 100,10000)
+yinventada <- 25*X + 10 + error
+df <- data.frame(X =Xinventada,Y = yinventada)
+df
+```
+```{r}
+ggplot(data = df, aes(x = X, y = Y)) +
+  geom_point()
+```
+```{r}
+modelo <- function(df1){
+  ### Coeficientes
+  xmod <- df1$X
+  ymod <- df1$Y
+  m <- (length(xmod)*sum(xmod*ymod)-sum(xmod)*sum(ymod))/(length(xmod)*sum(xmod^2)-(sum(xmod))^2)
+  b <- mean(ymod) - m*mean(xmod)
+  ### R2 y R
+  yestimada <- m*xmod + b
+  R2 = sum((yestimada - mean(ymod))^2)/sum((ymod - mean(ymod))^2)
+  R = sqrt(R2)
+  ### Residuos
+  residuos = ymod - yestimada
+  ### Gráfica
+  plot(xmod, ymod, main = 'Gráfica modelo', xlab = 'X', ylab = 'Y', col = 'orange3', pch = 19)
+  abline( a = b, b = m, col = 'purple4', lwd = 3 )
+  ##Return
+  DataModelo <- list(coefs = list(coef = m, intercept = b), R2 = R2, R = R, Residuals = residuos)
+  return(DataModelo)
+}
+
+
+```
+
+
+```{r}
+### Probando el modelo
+lmmodelo <- modelo(df)
+```
+```{r}
+lmmodelo
+```
+
+
+# Problema 2
+
+Para este ejercicio se le solicita que desarrolle las siguientes actividades utilizando RStudio Con el dataset Admissions adjunto a este laboratorio realice lo siguiente:
+
+```{r}
+DataAdmis <- read.csv('Admisions.csv')
+head(DataAdmis)
+```
+
+1. Realice un análisis estadístico sobre todas las variables del  dataset, recuerde que pude usar la función summary().
+
+```{r}
+Admis <- DataAdmis %>%
+  select(-Serial.No.)
+Admis
+```
+```{r}
+summary(Admis)
+```
+
+```{r}
+sapply(Admis, sd)
+```
+
+
+2. Realice una gráfica de densidad para cada una de las variables numéricas en el dataset: GRE.Score, TOEFEL.Score, CGPA y Chance of Admit.
+
+```{r}
+### Gráfica densidad GRE.Score
+
+ggplot(data = Admis, aes(x = GRE.Score)) +
+  geom_density(stat = 'density', col = 'lightblue', lwd = 1.5)+
+  geom_vline(aes(xintercept = mean(GRE.Score)), col = 'darkblue', lwd = 1, linetype = 'dashed') +
+  geom_vline(aes(xintercept = (mean(GRE.Score)+ sd(GRE.Score))), col = 'orange', lwd = 0.9, linetype = 'dashed') +
+  geom_vline(aes(xintercept = (mean(GRE.Score)- sd(GRE.Score))), col = 'orange', lwd = 0.9, linetype = 'dashed') +
+  theme_light() + ggtitle('Densidad GRE.Score')+
+  geom_text(aes(mean(GRE.Score),0,label = 'mu', vjust = -1), parse = TRUE) +
+  geom_text(aes((mean(GRE.Score)- sd(GRE.Score)),0,label = paste('mu', '-', 'sigma') , vjust = -1), parse = TRUE) +
+  geom_text(aes((mean(GRE.Score)+ sd(GRE.Score)),0,label = paste('mu', '+', 'sigma') , vjust = -1), parse = TRUE)
+```
+
+```{r}
+### Gráfica de TOEFL.Score
+ggplot(data = Admis, aes(x = TOEFL.Score)) +
+  geom_density(stat = 'density', col = 'lightblue', lwd = 1.5)+
+  geom_vline(aes(xintercept = mean(TOEFL.Score)), col = 'darkblue', lwd = 1, linetype = 'dashed') +
+  geom_vline(aes(xintercept = (mean(TOEFL.Score)+ sd(TOEFL.Score))), col = 'orange', lwd = 0.9, linetype = 'dashed') +
+  geom_vline(aes(xintercept = (mean(TOEFL.Score)- sd(TOEFL.Score))), col = 'orange', lwd = 0.9, linetype = 'dashed') +
+  theme_light() + ggtitle('Densidad TOEFL.Score') +
+  geom_text(aes(mean(TOEFL.Score),0,label = 'mu', vjust = -1), parse = TRUE) +
+  geom_text(aes((mean(TOEFL.Score)- sd(TOEFL.Score)),0,label = paste('mu', '-', 'sigma') , vjust = -1), parse = TRUE) +
+  geom_text(aes((mean(TOEFL.Score)+ sd(TOEFL.Score)),0,label = paste('mu', '+', 'sigma') , vjust = -1), parse = TRUE)
+```
+```{r}
+### Gráfica CGPA
+ggplot(data = Admis, aes(x = CGPA)) +
+  geom_density(stat = 'density', col = 'lightblue', lwd = 1.5)+
+  geom_vline(aes(xintercept = mean(CGPA)), col = 'darkblue', lwd = 1, linetype = 'dashed') +
+  geom_vline(aes(xintercept = (mean(CGPA)+ sd(CGPA))), col = 'orange', lwd = 0.9, linetype = 'dashed') +
+  geom_vline(aes(xintercept = (mean(CGPA)- sd(CGPA))), col = 'orange', lwd = 0.9, linetype = 'dashed') +
+  theme_light() + ggtitle('Densidad CGPA') +
+  geom_text(aes(mean(CGPA),0,label = 'mu', vjust = -1), parse = TRUE) +
+  geom_text(aes((mean(CGPA)- sd(CGPA)),0,label = paste('mu', '-', 'sigma') , vjust = -1), parse = TRUE) +
+  geom_text(aes((mean(CGPA)+ sd(CGPA)),0,label = paste('mu', '+', 'sigma') , vjust = -1), parse = TRUE)
+```
+```{r}
+### Gráfica Chance of Admit
+ggplot(data = Admis, aes(x = Chance.of.Admit)) +
+  geom_density(stat = 'density', col = 'lightblue', lwd = 1.5)+
+  geom_vline(aes(xintercept = mean(Chance.of.Admit)), col = 'darkblue', lwd = 1, linetype = 'dashed') +
+  geom_vline(aes(xintercept = (mean(Chance.of.Admit)+ sd(Chance.of.Admit))), col = 'orange', lwd = 0.9, linetype = 'dashed') +
+  geom_vline(aes(xintercept = (mean(Chance.of.Admit)- sd(Chance.of.Admit))), col = 'orange', lwd = 0.9, linetype = 'dashed') +
+  theme_light() + ggtitle('Densidad Chance.of.Admit')+
+  geom_text(aes(mean(Chance.of.Admit),0,label = 'mu', vjust = -1), parse = TRUE) +
+  geom_text(aes((mean(Chance.of.Admit)- sd(Chance.of.Admit)),0,label = paste('mu', '-', 'sigma') , vjust = -1), parse = TRUE) +
+  geom_text(aes((mean(Chance.of.Admit)+ sd(Chance.of.Admit)),0,label = paste('mu', '+', 'sigma') , vjust = -1), parse = TRUE)
+```
+
+3. Realice una gráfica de correlación entre las variables del inciso anterior.
+
+```{r}
+DFCorr <- Admis %>%
+  select(GRE.Score,TOEFL.Score,CGPA,Chance.of.Admit)
+pallete <- colorRampPalette(c('purple4', 'purple', 'violet'))(50)
+
+corrplot(cor(DFCorr), method = 'number', type = 'lower',
+        col.lim = c(0,1), col = pallete )
+```
+
+
+4. Realice comentarios sobre el análisis estadístico de las variables numéricas y la gráfica de correlación.
+
+Este dataset contiene información sobre las calificaciones en diversos exámenes y datos universitarios y la probabilidad de que los estudiantes sean aceptados según sus diversas calificaciones. Es conocido que para ingresar a una universidad en EEUU, es necesario para los extranjeros realizar exámenes tales como TOEFL y GRE.
+
+De la muestra que contiene el dataset, se puede observar que para todas las variables salvo Research, la media se encuentra casi a la mitad de los datos de la distribución, ya que coincide con la mediana. Con lo observado, se ve lo siguiente
+
+* La nota promedio de GRE es: 316.5 con desviación 11.29
+* La nota promedio en TOEFL es: 10 con desviación de 6.08
+* El CGPA promedio es: 8.58 con desviación de 0.60
+* La probabilidad promedio de ser admitido es: 0.7217 con desviación de 0.1411
+
+En cuanto al mapa de correlación, puede notarse que las variables seleccionadas guardan una relación lineal fuerte con la probabilidad de ser admitido, siendo la más relevante CGPA con 0.88, y la menos relevante TOEFL.Score con 0.79
+
+5. Realice un scatter plot (nube de puntos) de todas las variables numéricas contra la variable Chance of Admit.
+
+```{r}
+
+### GRE Score
+
+ggplot(data = Admis, aes(x = GRE.Score, y = Chance.of.Admit)) +
+  geom_point(shape = 20, col = 'red3', size = 3)+
+  theme_linedraw() + ggtitle('Probabilidad de ser admitido vs nota en GRE')
+```
+```{r}
+### TOEFL
+ggplot(data = Admis, aes(x = TOEFL.Score, y = Chance.of.Admit)) +
+  geom_point(shape = 20, col = 'orange3', size = 3)+
+  theme_linedraw() + ggtitle('Probabilidad de ser admitido vs nota en TOEFL')
+```
+```{r}
+###CGPA
+ggplot(data = Admis, aes(x = CGPA, y = Chance.of.Admit)) +
+  geom_point(shape = 20, col = 'navy', size = 3)+
+  theme_linedraw() + ggtitle('Probabilidad de ser admitido vs CGPA')
+
+```
+
+
+6. Utilizando la función train y trainControl para crear un crossvalidation y le permita evaluar los siguientes modelos:
+
+```{r}
+library(caret)
+ctrl <- trainControl(method = 'cv', number = 5)
+```
+
+
+* Chance of Admit ~ TOEFEL.Score.
+```{r}
+lmToefl <- train(Chance.of.Admit ~ TOEFL.Score, data = Admis, method = 'lm', trControl = ctrl)
+summary(lmToefl)
+```
+
+* Chance of Admit ~ CGPA.
+```{r}
+lmCGPA <- train(Chance.of.Admit ~ CGPA, data = Admis, method = 'lm', trControl = ctrl)
+summary(lmCGPA)
+```
+
+* Chance of Admit ~ GRE.Score.
+
+```{r}
+lmGRE <- train(Chance.of.Admit ~ GRE.Score, data = Admis, method = 'lm', trControl = ctrl)
+summary(lmGRE)
+```
+
+* Chance of Admit ~ TOEFEL.Score + CGPA.
+```{r}
+lmToCGPA <- train(Chance.of.Admit ~ TOEFL.Score + CGPA, data = Admis, method = 'lm', trControl = ctrl)
+summary(lmToCGPA)
+```
+
+* Chance of Admit ~ TOEFEL.Score + GRE.Score.
+```{r}
+lmToGRE <- train(Chance.of.Admit ~ GRE.Score + TOEFL.Score, data = Admis, method = 'lm', trControl = ctrl)
+summary(lmToGRE)
+```
+
+* Chance of Admit ~ GRE.Score + CGPA.
+```{r}
+lmGRECGPA <- train(Chance.of.Admit ~ GRE.Score + CGPA, data = Admis, method = 'lm', trControl = ctrl)
+summary(lmGRECGPA)
+```
+
+* Chance of Admit ~ TOEFEL.Score + CGPA + GRE.Score.
+
+```{r}
+lmTodo <- train(Chance.of.Admit ~ GRE.Score + TOEFL.Score + CGPA, data = Admis, method = 'lm', trControl = ctrl)
+summary(lmTodo)
+```
+
+
+
+Posteriormente cree una lista ordenando de mejor a peor cual es el mejor modelo en predicción, recuerde que es necesario caclular el RMSE para poder armar correctamente la lista. 
+
+```{r}
+R2Modelos <- c(summary(lmToefl)$r.squared, summary(lmGRE)$r.squared, summary(lmCGPA)$r.squared, 
+               summary(lmToGRE)$r.squared, summary(lmToCGPA)$r.square, summary(lmGRECGPA)$r.squared,
+               summary(lmTodo)$r.squared)
+
+names(R2Modelos)<- c('Toefl','GRE','CDGAP','Toefl + GRE','Toefl + CDGAP','GRE + CDGAP','TOEFL + GRE + CDGAP')
+
+RModelos <- sqrt(R2Modelos)
+
+
+RMSEs <- c(sqrt(mean(summary(lmToefl)$residuals^2)),sqrt(mean(summary(lmGRE)$residuals^2)),sqrt(mean(summary(lmCGPA)$residuals^2))
+           , sqrt(mean(summary(lmToGRE)$residuals^2)), sqrt(mean(summary(lmToCGPA)$residuals^2)),
+           sqrt(mean(summary(lmGRECGPA)$residuals^2)), sqrt(mean(summary(lmTodo)$residuals^2)))
+
+names(RMSEs) <- c('Toefl','GRE','CDGAP','Toefl + GRE','Toefl + CDGAP','GRE + CDGAP','TOEFL + GRE + CDGAP')
+
+RMSEs <- sort(RMSEs)
+R2Modelos <- sort(R2Modelos, decreasing = TRUE)
+RModelos <- sort(RModelos, decreasing = TRUE)
+
+print(RMSEs)
+
+
+
+
+
+```
+
+```{r}
+
+print(R2Modelos)
+
+
+```
+```{r}
+print(RModelos)
+```
+Interpretando los valores de RMSE, R2 y R, se tiene que los modelos en orden de mejor a peor son:
+
+1. TOEFL + GRE + CDGAP
+2. GRE + CDGAP
+3. TOEFL + CDGAP
+4. CDGAP
+5. TOEFL + GRE
+6. GRE
+7. TOEFL
+
+# Problema 3
+
+A continuación se le muestran tres imágenes que muestran los resultados obtenidos de correr la función summary() a dos modelos de regresión lineal, para este ejercicio se le solicita que realice la interpretación de las tablas resultantes. Recuerde tomar en cuenta la signficancia de los parámetros (signfícancia local), la signficancia del modelo (signficancia global), el valor del coeficiente de correlación: y cualquier observación que considere relevante para determinar si el modelo estructuralmente es  adecuado o no.
+
+## Datos modelo 1
+
+En la imagen adjunta en los enunciados del laboratorio, puede verse que el coeficiente de correlación es bajísimo. No solo eso, sino que el nivel de significancia es igual muy alto, siendo 0.33 para el intercepto y 0.03 para el coeficiente. También el estadístico F es muy bajo. Este modelo no es para nada bueno y no debería usarse.
+
+## Datos modelo 2
+En la imagen proporcionada, se puede apreciar que este es un modelo multilineal con tres variables independientes. Se observa que el coeficiente de correlación es alto, y también su nivel de significancia es muy bajo, por lo que se ve que todas las variables son importantes en el modelo. Lo que puede observarse también es que el error estándar para el intercepto y UNEM son más altos que el resto, por lo que podrían ser variables un tanto inestables. El estadístico F es muchísimo mayor a 5, y la significancia del modelo arroja un valor muy cercano a cero. Este modelo es considerado como bueno, siempre tomando en cuenta la inestabilidad de las variables mencionadas.
+
+## Datos modelo 3
+
+En la imagen que se incluye en los enunciados, es posible ver que este es un modelo lineal con una variable independiente, Months. Los errores estándar y del coeficiente no son tan altos en proproción a los valores obtenido, por lo que se ve que ambos valores son estables. También el nivel de significancia da un valor cercano a cero, por lo que se ve que ambos valores son significativos para la construcción del modelo. El estadístico F también es mucho mayor a 5 y el valor p tiende a cero, por lo que se considera este un buen modelo.
